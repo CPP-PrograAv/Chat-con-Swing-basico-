@@ -4,6 +4,7 @@ import java.net.*;
 import java.awt.event.*;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -36,7 +37,7 @@ class MarcoCliente extends JFrame{
 }
 
 	
-class LaminaMarcoCliente extends JPanel{
+class LaminaMarcoCliente extends JPanel implements Runnable{
 	
 	private JTextField mensaje,nick,ip;
 	private JButton miboton;
@@ -46,7 +47,7 @@ class LaminaMarcoCliente extends JPanel{
 	public LaminaMarcoCliente() {
 		
 		nick = new JTextField(5);//tamanio
-		add(nick);
+		add(nick); //aniado el nick al JPanel
 		JLabel texto = new JLabel("Cliente");
 		add(texto);
 		
@@ -62,8 +63,12 @@ class LaminaMarcoCliente extends JPanel{
 		miboton = new JButton("Enviar");		
 		EnviarTexto mievento = new EnviarTexto();
 		miboton.addActionListener(mievento);//adicionarle el evento
-		
 		add(miboton);
+		
+		
+		Thread hilo = new Thread(this);
+		
+		hilo.start();
 		
 	}
 	
@@ -93,7 +98,13 @@ class LaminaMarcoCliente extends JPanel{
 				//enviar objects
 				flujoSalida.writeObject(datos);
 				
+				
+				
 				misocket.close();
+				
+				
+				//ahora necesito que el cliente escuche permanentemente, como tambien debe eviar, al hacer dos cosas a la vez, utilizo un hilo 
+			
 				
 				/*DataOutputStream flujoSalida = new DataOutputStream(misocket.getOutputStream());//indicar por donde va a circular, y lo hacemos con el socket creado
 				
@@ -112,6 +123,41 @@ class LaminaMarcoCliente extends JPanel{
 			}
 			
 		}
+		
+	}
+
+
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		
+		try {
+			ServerSocket servidorCliente = new ServerSocket(9090);
+			
+			Socket cliente;
+			
+			PaqueteEnvio paqueteRecibido;
+			
+			while(true) { //ciclo infinito para que siempre escuche
+				
+				cliente = servidorCliente.accept(); //aceptar las conexiones
+				//objeto de entrada, creo el flujo
+				ObjectInputStream flujoEntrada = new ObjectInputStream(cliente.getInputStream());
+				
+				//atrapo lo que esta en el flujo
+				paqueteRecibido =(PaqueteEnvio) flujoEntrada.readObject();
+				
+				//escribo el msj en el area de texto del cliente
+				
+				campochat.append(paqueteRecibido.getNick()+": " + paqueteRecibido.getMensaje()+"\n");
+				
+			}
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			System.out.println(e.getMessage());//que me de el msj de error en consola si este sucede
+		}
+		
 		
 	}
 	

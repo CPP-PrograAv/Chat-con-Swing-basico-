@@ -36,6 +36,7 @@ class MarcoServidor extends JFrame implements Runnable{
 			
 			setVisible(true);
 			
+			//pongo en funcionamiente el hilo
 			Thread mihilo =  new Thread(this);
 			
 			mihilo.start(); // ejecutar el hilo
@@ -56,7 +57,7 @@ class MarcoServidor extends JFrame implements Runnable{
 				while(true) {
 					
 					Socket misocket = servidor.accept(); //acepte las conexiones q les vengan del exterior
-				
+					
 					ObjectInputStream paqueteDatosFE = new ObjectInputStream(misocket.getInputStream());
 					
 					//guardo el paquete recibido, hay q castearlo por ser un ObjectInputStream
@@ -75,9 +76,21 @@ class MarcoServidor extends JFrame implements Runnable{
 //					String mensajeTexto = flujoEntrada.readUTF();
 //				
 //					areatexto.append( mensajeTexto +"\n");
-//				
-//					misocket.close();
-//				
+					
+				//REENVIAR PAQUETE A CLIENTE DESTINO.	
+				//tender un puente por donde viaja la info
+					Socket enviarDestinatario = new Socket(ip,9090);
+					
+					//flujo de datos vacios que luego debe insertarse.
+					ObjectOutputStream paqueteReenvioFD = new ObjectOutputStream(enviarDestinatario.getOutputStream());
+					
+					//meto el paquete recibido en el flujo para que lo envie a la ip de destino
+					paqueteReenvioFD.writeObject(paqueteRecibido);
+					
+					
+					//cierro los sockets
+					enviarDestinatario.close();
+					misocket.close();
 				}
 				
 			} catch (IOException | ClassNotFoundException e) {
