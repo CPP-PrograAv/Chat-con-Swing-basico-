@@ -50,20 +50,37 @@ class MarcoServidor extends JFrame implements Runnable{
 			try {
 				ServerSocket servidor =new ServerSocket(9999); //este a la escucha 
 				
+				String nick, ip, mensaje; //variables para almacenar la informacion.
+				PaqueteEnvio paqueteRecibido; //instancia para almacenar los datos
+				
 				while(true) {
-				Socket misocket = servidor.accept(); //acepte las conexiones q les vengan del exterior
+					
+					Socket misocket = servidor.accept(); //acepte las conexiones q les vengan del exterior
 				
-				DataInputStream flujoEntrada = new DataInputStream(misocket.getInputStream()); //xq socket viaja la info de entrada
-				
-				String mensajeTexto = flujoEntrada.readUTF();
-				
-				areatexto.append( mensajeTexto +"\n");
-				
-				misocket.close();
-				
+					ObjectInputStream paqueteDatosFE = new ObjectInputStream(misocket.getInputStream());
+					
+					//guardo el paquete recibido, hay q castearlo por ser un ObjectInputStream
+					//esta linea lanza una exception, debo manejarlo(ClassNotFound)
+					paqueteRecibido = (PaqueteEnvio) paqueteDatosFE.readObject();
+					
+					nick = paqueteRecibido.getNick();
+					ip = paqueteRecibido.getIp();
+					mensaje = paqueteRecibido.getMensaje();
+					
+					areatexto.append(nick + ": "+mensaje + " para "+ip+"\n");
+					
+					
+//					DataInputStream flujoEntrada = new DataInputStream(misocket.getInputStream()); //xq socket viaja la info de entrada
+//				
+//					String mensajeTexto = flujoEntrada.readUTF();
+//				
+//					areatexto.append( mensajeTexto +"\n");
+//				
+//					misocket.close();
+//				
 				}
 				
-			} catch (IOException e) {
+			} catch (IOException | ClassNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
